@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import Card from './components/Card';
 import Header from './components/Header';
-import CreateBlog from './components/CreateBlog';
-import ViewBlog from './components/ViewBlog';
+import CreateBlog from './page/CreateBlog';
+import ViewBlog from './page/ViewBlog';
+import ListBlog from './page/ListBlog';
 
 function App() {
   const [page, setPage] = useState('home');
@@ -138,32 +138,16 @@ function App() {
               setPage('home');
             }}
           />
-          <div className='grid grid-cols-2 xl:grid-cols-4 gap-4 p-9 '>
-            {
-              // Looping data untuk membuat Card
-              // menggunakan Array map
-              // https://www.w3schools.com/jsref/jsref_map.asp
-              data.map((item) => (
-                <button
-                  key={item.id}
-                  className='text-left'
-                  onClick={() => {
-                    setPage('view');
-                    setViewId(item.id);
-                  }}
-                >
-                  <Card
-                    id={item.id}
-                    onDelete={handleOnClickDeleteCard}
-                    onEdit={handleOnClickEditCard}
-                    image={item.image}
-                    title={item.title}
-                    description={item.description}
-                  />
-                </button>
-              ))
-            }
-          </div>
+
+          <ListBlog
+            data={data}
+            onClickCard={(id) => {
+              setViewId(id);
+              setPage('view');
+            }}
+            onDelete={handleOnClickDeleteCard}
+            onEdit={handleOnClickEditCard}
+          />
         </>
       )}
     </div>
