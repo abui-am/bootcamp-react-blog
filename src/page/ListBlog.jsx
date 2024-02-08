@@ -2,25 +2,33 @@ import PropTypes from 'prop-types';
 import Card from '../components/Card';
 function ListBlog({ data, onClickCard, onDelete, onEdit }) {
   return (
-    <div className='grid grid-cols-2 xl:grid-cols-4 gap-4 p-9 '>
-      {
-        // Looping data untuk membuat Card
-        // menggunakan Array map
-        // https://www.w3schools.com/jsref/jsref_map.asp
-        data.map((item) => (
-          <button key={item.id} className='text-left' onClick={onClickCard}>
-            <Card
-              id={item.id}
-              onDelete={onDelete}
-              onEdit={onEdit}
-              image={item.image}
-              title={item.title}
-              description={item.description}
-            />
-          </button>
-        ))
-      }
-    </div>
+    <>
+      <section id='head' className='my-16  text-center'>
+        <h1 className='text-4xl font-bold mb-2'>
+          Selamat Datang di Blog Saya!
+        </h1>
+        <p>Ini adalah tempat saya menulis blog.</p>
+      </section>
+      <div className='grid grid-cols-2 xl:grid-cols-4 gap-4 p-9 '>
+        {
+          // Looping data untuk membuat Card
+          // menggunakan Array map
+          // https://www.w3schools.com/jsref/jsref_map.asp
+          data.map((item) => (
+            <button key={item.id} className='text-left' onClick={onClickCard}>
+              <Card
+                id={item.id}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                image={item.image}
+                title={item.title}
+                description={item.description}
+              />
+            </button>
+          ))
+        }
+      </div>
+    </>
   );
 }
 
