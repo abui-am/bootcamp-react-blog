@@ -1,10 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
-function CreateBlog({ handleCreate, handleClickBack }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+function CreateBlog({
+  handleCreate,
+  handleClickBack,
+  defaultData,
+  handleEdit,
+}) {
+  const [title, setTitle] = useState();
+  const [description, setDescription] = useState();
+  // convert url to image
+  const [, setImage] = useState();
+  const [imageUrlPreview, setImageUrlPreview] = useState(
+    'https://source.unsplash.com/random'
+  );
 
+  useEffect(() => {
+    const setData = async () => {
+      setTitle(defaultData.title);
+      setDescription(defaultData.description);
+      setImageUrlPreview(defaultData.image);
+    };
+    if (defaultData) {
+      setData();
+    }
+  }, [defaultData]);
+
+  // Cek apakah sedang dalam mode edit dengan melihat apakah ada data default id atau tidak
+  const isEdit = defaultData?.id;
   return (
     <>
       <div className='flex justify-between pt-6 pb-6 pr-9 pl-9 border-b border-b-[rgba(0,0,0,0.3)]'>
@@ -19,7 +42,20 @@ function CreateBlog({ handleCreate, handleClickBack }) {
         <button
           className='px-6 py-2 bg-blue-500 text-white rounded'
           onClick={() => {
-            handleCreate(title, description);
+            if (isEdit) {
+              handleEdit({
+                title,
+                description,
+                image: imageUrlPreview,
+                id: defaultData.id,
+              });
+            } else {
+              handleCreate({
+                title,
+                description,
+                image: imageUrlPreview,
+              });
+            }
           }}
         >
           Confirm & Create
@@ -46,14 +82,45 @@ function CreateBlog({ handleCreate, handleClickBack }) {
             className='border w-full rounded py-1 px-3'
           />
         </div>
+        <div className='mt-6'>
+          <label className='text-base font-semibold mb-2 block'>Gambar</label>
+
+          <img
+            src={imageUrlPreview}
+            className='aspect-video object-cover rounded mb-3'
+            alt='preview'
+          />
+
+          <input
+            type='file'
+            accept='image/*'
+            onChange={(ev) => {
+              setImageUrlPreview(convertImageToUrl(ev.target.files[0]));
+              setImage(ev.target.files[0]);
+            }}
+          />
+        </div>
       </section>
     </>
   );
 }
 
+function convertImageToUrl(image) {
+  return image
+    ? URL.createObjectURL(image)
+    : 'https://source.unsplash.com/random';
+}
+
 CreateBlog.propTypes = {
-  handleCreate: PropTypes.func.isRequired,
+  handleCreate: PropTypes.func,
   handleClickBack: PropTypes.func.isRequired,
+  defaultData: PropTypes.shape({
+    title: PropTypes.string,
+    description: PropTypes.string,
+    image: PropTypes.string,
+    id: PropTypes.number,
+  }),
+  handleEdit: PropTypes.func,
 };
 
 export default CreateBlog;
