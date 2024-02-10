@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import Header from '../components/Header';
 
 function ViewBlog({
-  data: { id, title, description, image },
+  data: { id, title, description, image } = {},
   onEdit,
   onDelete,
   onClickBuatBlog,

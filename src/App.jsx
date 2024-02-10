@@ -1,29 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreateBlog from './page/CreateBlog';
 import ViewBlog from './page/ViewBlog';
 import ListBlog from './page/ListBlog';
+import { db } from './services/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 function App() {
   const [page, setPage] = useState('home');
   const [editId, setEditId] = useState(null);
   const [viewId, setViewId] = useState(null);
 
-  const [data, setData] = useState([
-    {
-      id: 1,
-      title: 'ini title 2',
-      description: 'ini deskripsi',
-      image: 'https://via.placeholder.com/150',
-    },
-    {
-      id: 2,
-      title: 'ini title 2',
+  const [data, setData] = useState([]);
 
-      image: 'https://via.placeholder.com/150',
-      description:
-        'ini deskripsi dengan panjang yang lebih banyak, sehingga akan terlihat lebih banyak teksnya. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus nec nunc tincidunt aliquam',
-    },
-  ]);
+  useEffect(() => {
+    const getData = async () => {
+      const data = [];
+      const querySnapshot = await getDocs(collection(db, 'posts'));
+      querySnapshot.forEach((doc) => {
+        data.push({ ...doc.data(), id: doc.id });
+      });
+      setData(data);
+    };
+    getData();
+  }, []);
 
   function handleClickBack() {
     // Kembalikan ke halaman home
