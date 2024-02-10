@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Header from './components/Header';
 import CreateBlog from './page/CreateBlog';
 import ViewBlog from './page/ViewBlog';
 import ListBlog from './page/ListBlog';
@@ -108,15 +107,13 @@ function App() {
       )}
       {page === 'view' && (
         <>
-          <Header
+          <ViewBlog
             onClickBuatBlog={() => {
               setPage('create');
             }}
             onClickTitle={() => {
               setPage('home');
             }}
-          />
-          <ViewBlog
             data={data.find((item) => item.id === viewId)}
             onEdit={handleOnClickEditCard}
             onDelete={handleOnClickDeleteCard}
@@ -125,21 +122,13 @@ function App() {
       )}
       {page === 'home' && (
         <>
-          <Header
-            // Pass props ke Header
-            // Props onClickBuatBlog adalah fungsi yang akan dijalankan
-            // di dalam Component Header
-            // Namun pembuatan fungsi tersebut dilakukan di dalam Component App
-            // karena di dalam state yang akan diubah berada di dalam Component App
+          <ListBlog
             onClickBuatBlog={() => {
               setPage('create');
             }}
             onClickTitle={() => {
               setPage('home');
             }}
-          />
-
-          <ListBlog
             data={data}
             onClickCard={(id) => {
               setViewId(id);

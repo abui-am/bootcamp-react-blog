@@ -1,8 +1,18 @@
 import PropTypes from 'prop-types';
 import Card from '../components/Card';
-function ListBlog({ data, onClickCard, onDelete, onEdit }) {
+import Header from '../components/Header';
+function ListBlog({
+  data,
+  onClickCard,
+  onDelete,
+  onEdit,
+  onClickBuatBlog,
+  onClickTitle,
+}) {
   return (
     <>
+      <Header onClickBuatBlog={onClickBuatBlog} onClickTitle={onClickTitle} />
+
       <section id='head' className='my-16  text-center'>
         <h1 className='text-4xl font-bold mb-2'>
           Selamat Datang di Blog Saya!
@@ -44,6 +54,8 @@ ListBlog.propTypes = {
   onClickCard: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
+  onClickBuatBlog: PropTypes.func.isRequired,
+  onClickTitle: PropTypes.func.isRequired,
 };
 
 export default ListBlog;
