@@ -25,7 +25,13 @@ function ListBlog({
           // menggunakan Array map
           // https://www.w3schools.com/jsref/jsref_map.asp
           data.map((item) => (
-            <button key={item.id} className='text-left' onClick={onClickCard}>
+            <button
+              key={item.id}
+              className='text-left'
+              onClick={() => {
+                onClickCard(item.id);
+              }}
+            >
               <Card
                 id={item.id}
                 onDelete={onDelete}
