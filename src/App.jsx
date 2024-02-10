@@ -3,7 +3,14 @@ import CreateBlog from './page/CreateBlog';
 import ViewBlog from './page/ViewBlog';
 import ListBlog from './page/ListBlog';
 import { db } from './services/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  setDoc,
+} from 'firebase/firestore';
 
 function App() {
   const [page, setPage] = useState('home');
@@ -11,16 +18,15 @@ function App() {
   const [viewId, setViewId] = useState(null);
 
   const [data, setData] = useState([]);
-
+  const getData = async () => {
+    const data = [];
+    const querySnapshot = await getDocs(collection(db, 'posts'));
+    querySnapshot.forEach((doc) => {
+      data.push({ ...doc.data(), id: doc.id });
+    });
+    setData(data);
+  };
   useEffect(() => {
-    const getData = async () => {
-      const data = [];
-      const querySnapshot = await getDocs(collection(db, 'posts'));
-      querySnapshot.forEach((doc) => {
-        data.push({ ...doc.data(), id: doc.id });
-      });
-      setData(data);
-    };
     getData();
   }, []);
 
@@ -29,25 +35,31 @@ function App() {
     setPage('home');
   }
 
-  function handleCreate({ title, description, image }) {
-    // Data yang baru ditambahkan harus memiliki id yang unik
-    // id yang baru adalah id dari data terakhir ditambah 1
-    const newId = data.length >= 1 ? data[data.length - 1].id + 1 : 0;
+  async function handleCreate({ title, description, image }) {
     const newData = {
-      id: newId,
       title,
       description,
       image,
     };
-    setData([...data, newData]);
+
+    try {
+      await addDoc(collection(db, 'posts'), newData);
+      getData();
+    } catch (e) {
+      console.error('Error adding document: ', e);
+    }
 
     // Kembali ke halaman home
     setPage('home');
   }
 
-  function handleOnClickDeleteCard(id) {
-    // Hapus data dari state
-    setData(data.filter((data) => data.id !== id));
+  async function handleOnClickDeleteCard(id) {
+    try {
+      await deleteDoc(doc(db, 'posts', id));
+      getData();
+    } catch (e) {
+      console.error('Error deleting document: ', e);
+    }
   }
 
   function handleOnClickEditCard({ id }) {
@@ -55,29 +67,24 @@ function App() {
     setPage('edit');
   }
 
-  const handleEdit = ({ title, description, image, id }) => {
-    // Cari data yang akan diubah
-    const dataToEdit = data.find((item) => item.id === id);
+  async function handleEdit({ title, description, image, id }) {
+    const dataToEdit = {
+      title,
+      description,
+      image,
+    };
 
-    // Ubah data yang ditemukan
-    dataToEdit.title = title;
-    dataToEdit.description = description;
-    dataToEdit.image = image;
-
-    const newData = data.map((item) => {
-      if (item.id === id) {
-        return dataToEdit;
-      }
-      return item;
-    });
-
-    // Update state
-    setData(newData);
-    setEditId(null);
+    try {
+      await setDoc(doc(db, 'posts', id), dataToEdit);
+      setEditId(null);
+      getData();
+    } catch (e) {
+      console.error('Error updating document: ', e);
+    }
 
     // Kembali ke halaman home
     setPage('home');
-  };
+  }
 
   return (
     <div>
@@ -113,7 +120,9 @@ function App() {
             onClickTitle={() => {
               setPage('home');
             }}
-            data={data.find((item) => item.id === viewId)}
+            data={{
+              id: viewId,
+            }}
             onEdit={handleOnClickEditCard}
             onDelete={handleOnClickDeleteCard}
           />

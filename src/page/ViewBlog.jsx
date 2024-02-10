@@ -1,13 +1,30 @@
 import PropTypes from 'prop-types';
 import Header from '../components/Header';
+import { useEffect, useState } from 'react';
+import { doc, getDoc } from '@firebase/firestore';
+import { db } from '../services/firebase';
 
 function ViewBlog({
-  data: { id, title, description, image } = {},
+  data: { id } = {},
   onEdit,
   onDelete,
   onClickBuatBlog,
   onClickTitle,
 }) {
+  const [data, setData] = useState({});
+  const { image, title, description } = data || {};
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getDoc(doc(db, 'posts', id));
+        setData(response.data());
+      } catch (e) {
+        console.error('Error fetching document: ', e);
+      }
+    };
+    fetchData();
+  }, [id]);
   return (
     <>
       <Header onClickBuatBlog={onClickBuatBlog} onClickTitle={onClickTitle} />
@@ -54,10 +71,7 @@ function ViewBlog({
 
 ViewBlog.propTypes = {
   data: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    title: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    image: PropTypes.string.isRequired,
+    id: PropTypes.string.isRequired,
   }).isRequired,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
