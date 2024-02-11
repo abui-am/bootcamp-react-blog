@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-
+import { doc, getDoc } from 'firebase/firestore';
+import { db, storage } from '../config/firebase';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { uuidv4 } from '@firebase/util';
 function CreateBlog({
   handleCreate,
   handleClickBack,
@@ -10,21 +13,55 @@ function CreateBlog({
   const [title, setTitle] = useState();
   const [description, setDescription] = useState();
   // convert url to image
-  const [, setImage] = useState();
+  const [image, setImage] = useState();
   const [imageUrlPreview, setImageUrlPreview] = useState(
     'https://source.unsplash.com/random'
   );
 
   useEffect(() => {
-    const setData = async () => {
-      setTitle(defaultData.title);
-      setDescription(defaultData.description);
-      setImageUrlPreview(defaultData.image);
+    const getData = async () => {
+      const docRef = doc(db, 'posts', defaultData.id);
+      const docSnap = await getDoc(docRef);
+
+      const data = { id: docSnap.id, ...docSnap.data() };
+      setTitle(data.title);
+      setDescription(data.description);
+      setImageUrlPreview(data.image);
     };
     if (defaultData) {
-      setData();
+      getData();
     }
   }, [defaultData]);
+
+  async function handleConfirmCreate() {
+    let imageUrl = imageUrlPreview;
+    if (image) {
+      try {
+        const file = await uploadBytes(
+          ref(storage, `posts/image/${uuidv4()}`),
+          image
+        );
+        const imageUrlPreview = await getDownloadURL(file.ref);
+        imageUrl = imageUrlPreview;
+      } catch (error) {
+        console.error('Error upload image', error);
+      }
+    }
+    if (isEdit) {
+      handleEdit({
+        title,
+        description,
+        image: imageUrl,
+        id: defaultData.id,
+      });
+    } else {
+      handleCreate({
+        title,
+        description,
+        image: imageUrl,
+      });
+    }
+  }
 
   // Cek apakah sedang dalam mode edit dengan melihat apakah ada data default id atau tidak
   const isEdit = defaultData?.id;
@@ -41,22 +78,7 @@ function CreateBlog({
         </button>
         <button
           className='px-6 py-2 bg-blue-500 text-white rounded'
-          onClick={() => {
-            if (isEdit) {
-              handleEdit({
-                title,
-                description,
-                image: imageUrlPreview,
-                id: defaultData.id,
-              });
-            } else {
-              handleCreate({
-                title,
-                description,
-                image: imageUrlPreview,
-              });
-            }
-          }}
+          onClick={handleConfirmCreate}
         >
           Confirm & Create
         </button>
@@ -115,9 +137,6 @@ CreateBlog.propTypes = {
   handleCreate: PropTypes.func,
   handleClickBack: PropTypes.func.isRequired,
   defaultData: PropTypes.shape({
-    title: PropTypes.string,
-    description: PropTypes.string,
-    image: PropTypes.string,
     id: PropTypes.number,
   }),
   handleEdit: PropTypes.func,

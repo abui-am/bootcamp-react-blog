@@ -1,54 +1,67 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreateBlog from './page/CreateBlog';
 import ViewBlog from './page/ViewBlog';
 import ListBlog from './page/ListBlog';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  setDoc,
+} from 'firebase/firestore';
+import { db } from './config/firebase';
 
 function App() {
   const [page, setPage] = useState('home');
   const [editId, setEditId] = useState(null);
   const [viewId, setViewId] = useState(null);
-
-  const [data, setData] = useState([
-    {
-      id: 1,
-      title: 'ini title 2',
-      description: 'ini deskripsi',
-      image: 'https://via.placeholder.com/150',
-    },
-    {
-      id: 2,
-      title: 'ini title 2',
-
-      image: 'https://via.placeholder.com/150',
-      description:
-        'ini deskripsi dengan panjang yang lebih banyak, sehingga akan terlihat lebih banyak teksnya. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus nec nunc tincidunt aliquam',
-    },
-  ]);
+  const [data, setData] = useState([]);
 
   function handleClickBack() {
     // Kembalikan ke halaman home
     setPage('home');
   }
 
-  function handleCreate({ title, description, image }) {
-    // Data yang baru ditambahkan harus memiliki id yang unik
-    // id yang baru adalah id dari data terakhir ditambah 1
-    const newId = data.length >= 1 ? data[data.length - 1].id + 1 : 0;
+  async function getData() {
+    try {
+      const postsRef = collection(db, 'posts');
+      const snapshot = await getDocs(postsRef);
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      console.log(data);
+
+      setData(data);
+    } catch (error) {
+      console.error('Error get data', error);
+    }
+  }
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  async function handleCreate({ title, description, image }) {
     const newData = {
-      id: newId,
       title,
       description,
       image,
     };
-    setData([...data, newData]);
+
+    const postsRef = collection(db, 'posts');
+    await addDoc(postsRef, newData);
+    getData();
 
     // Kembali ke halaman home
     setPage('home');
   }
 
-  function handleOnClickDeleteCard(id) {
+  async function handleOnClickDeleteCard(id) {
     // Hapus data dari state
-    setData(data.filter((data) => data.id !== id));
+    await deleteDoc(doc(db, 'posts', id));
+    getData();
   }
 
   function handleOnClickEditCard({ id }) {
@@ -56,24 +69,15 @@ function App() {
     setPage('edit');
   }
 
-  const handleEdit = ({ title, description, image, id }) => {
-    // Cari data yang akan diubah
-    const dataToEdit = data.find((item) => item.id === id);
-
-    // Ubah data yang ditemukan
-    dataToEdit.title = title;
-    dataToEdit.description = description;
-    dataToEdit.image = image;
-
-    const newData = data.map((item) => {
-      if (item.id === id) {
-        return dataToEdit;
-      }
-      return item;
-    });
-
-    // Update state
-    setData(newData);
+  const handleEdit = async ({ title, description, image, id }) => {
+    const newData = {
+      title,
+      description,
+      image,
+    };
+    const docRef = doc(db, 'posts', id);
+    await setDoc(docRef, newData);
+    getData();
     setEditId(null);
 
     // Kembali ke halaman home
@@ -102,7 +106,9 @@ function App() {
           // karena di dalam state yang akan diubah berada di dalam Component App
           handleClickBack={handleClickBack}
           handleEdit={handleEdit}
-          defaultData={data.find((item) => item.id === editId)}
+          defaultData={{
+            id: editId,
+          }}
         />
       )}
       {page === 'view' && (
