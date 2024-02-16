@@ -1,54 +1,74 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreateBlog from './page/CreateBlog';
 import ViewBlog from './page/ViewBlog';
 import ListBlog from './page/ListBlog';
+import { db } from './configs/firebase';
+import {
+  Timestamp,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  setDoc,
+} from 'firebase/firestore';
 
 function App() {
   const [page, setPage] = useState('home');
   const [editId, setEditId] = useState(null);
   const [viewId, setViewId] = useState(null);
 
-  const [data, setData] = useState([
-    {
-      id: 1,
-      title: 'ini title 2',
-      description: 'ini deskripsi',
-      image: 'https://via.placeholder.com/150',
-    },
-    {
-      id: 2,
-      title: 'ini title 2',
+  const postsRef = collection(db, 'posts');
 
-      image: 'https://via.placeholder.com/150',
-      description:
-        'ini deskripsi dengan panjang yang lebih banyak, sehingga akan terlihat lebih banyak teksnya. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus nec nunc tincidunt aliquam',
-    },
-  ]);
+  const [data, setData] = useState([]);
+  const getData = async () => {
+    const data = [];
+    const querySnapshot = await getDocs(postsRef);
+    querySnapshot.forEach((doc) => {
+      data.push({
+        ...doc.data(),
+        id: doc.id,
+        createdAt: doc.data()?.createdAt?.toDate(),
+      });
+    });
+    setData(data);
+  };
+  useEffect(() => {
+    getData();
+  }, []);
 
   function handleClickBack() {
     // Kembalikan ke halaman home
     setPage('home');
   }
 
-  function handleCreate({ title, description, image }) {
-    // Data yang baru ditambahkan harus memiliki id yang unik
-    // id yang baru adalah id dari data terakhir ditambah 1
-    const newId = data.length >= 1 ? data[data.length - 1].id + 1 : 0;
+  async function handleCreate({ title, description, image }) {
     const newData = {
-      id: newId,
       title,
       description,
       image,
+      createdAt: Timestamp.now(),
     };
-    setData([...data, newData]);
+
+    try {
+      await addDoc(postsRef, newData);
+      getData();
+    } catch (e) {
+      console.error('Error adding document: ', e);
+    }
 
     // Kembali ke halaman home
     setPage('home');
   }
 
-  function handleOnClickDeleteCard(id) {
-    // Hapus data dari state
-    setData(data.filter((data) => data.id !== id));
+  async function handleOnClickDeleteCard(id) {
+    const docRef = doc(db, 'posts', id);
+    try {
+      await deleteDoc(docRef);
+      getData();
+    } catch (e) {
+      console.error('Error deleting document: ', e);
+    }
   }
 
   function handleOnClickEditCard({ id }) {
@@ -56,29 +76,25 @@ function App() {
     setPage('edit');
   }
 
-  const handleEdit = ({ title, description, image, id }) => {
-    // Cari data yang akan diubah
-    const dataToEdit = data.find((item) => item.id === id);
+  async function handleEdit({ title, description, image, id }) {
+    const dataToEdit = {
+      title,
+      description,
+      image,
+    };
 
-    // Ubah data yang ditemukan
-    dataToEdit.title = title;
-    dataToEdit.description = description;
-    dataToEdit.image = image;
-
-    const newData = data.map((item) => {
-      if (item.id === id) {
-        return dataToEdit;
-      }
-      return item;
-    });
-
-    // Update state
-    setData(newData);
-    setEditId(null);
+    try {
+      const docRef = doc(db, 'posts', id);
+      await setDoc(docRef, dataToEdit);
+      setEditId(null);
+      getData();
+    } catch (e) {
+      console.error('Error updating document: ', e);
+    }
 
     // Kembali ke halaman home
     setPage('home');
-  };
+  }
 
   return (
     <div>
@@ -114,9 +130,14 @@ function App() {
             onClickTitle={() => {
               setPage('home');
             }}
-            data={data.find((item) => item.id === viewId)}
+            data={{
+              id: viewId,
+            }}
             onEdit={handleOnClickEditCard}
-            onDelete={handleOnClickDeleteCard}
+            onDelete={(id) => {
+              handleOnClickDeleteCard(id);
+              setPage('home');
+            }}
           />
         </>
       )}
