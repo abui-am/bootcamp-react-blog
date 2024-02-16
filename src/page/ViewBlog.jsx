@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from '@firebase/firestore';
 import { db } from '../services/firebase';
+import dayjs from 'dayjs';
 
 function ViewBlog({
   data: { id } = {},
@@ -12,13 +13,17 @@ function ViewBlog({
   onClickTitle,
 }) {
   const [data, setData] = useState({});
-  const { image, title, description } = data || {};
+  const { image, title, description, createdAt } = data || {};
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getDoc(doc(db, 'posts', id));
-        setData(response.data());
+        setData({
+          ...response.data(),
+          id: response.id,
+          createdAt: response.data()?.createdAt?.toDate(),
+        });
       } catch (e) {
         console.error('Error fetching document: ', e);
       }
@@ -36,7 +41,7 @@ function ViewBlog({
         />
         <h1 className='text-4xl font-bold mb-6'>{title}</h1>
         <section id='action' className='flex mb-6 justify-between'>
-          <div>2 Aug 2023</div>
+          <div>{dayjs(createdAt).format('DD MMMM YYYY')}</div>
           <div className='flex gap-6'>
             <button
               className='underline'

@@ -76,7 +76,7 @@ function CreateBlog({
           className='px-6 py-2 bg-blue-500 text-white rounded'
           onClick={handleOnClickConfirm}
         >
-          Confirm & Create
+          Confirm & {isEdit ? 'Edit' : 'Create'}
         </button>
       </div>
       <section className='max-w-[591px] w-full mx-auto'>
@@ -86,6 +86,7 @@ function CreateBlog({
         <div>
           <label className='text-base font-semibold mb-2 block'>Judul</label>
           <input
+            placeholder='Masukkan judul blog'
             onChange={(ev) => setTitle(ev.target.value)}
             value={title}
             className='border w-full h-10 rounded py-1 px-3'
@@ -94,6 +95,7 @@ function CreateBlog({
         <div className='mt-6'>
           <label className='text-base font-semibold mb-2 block'>Isi</label>
           <textarea
+            placeholder='Masukkan isi blog'
             rows={4}
             onChange={(ev) => setDescription(ev.target.value)}
             value={description}

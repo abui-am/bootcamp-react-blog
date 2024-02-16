@@ -4,6 +4,7 @@ import ViewBlog from './page/ViewBlog';
 import ListBlog from './page/ListBlog';
 import { db } from './services/firebase';
 import {
+  Timestamp,
   addDoc,
   collection,
   deleteDoc,
@@ -17,13 +18,20 @@ function App() {
   const [editId, setEditId] = useState(null);
   const [viewId, setViewId] = useState(null);
 
+  const postsRef = collection(db, 'posts');
+
   const [data, setData] = useState([]);
   const getData = async () => {
     const data = [];
-    const querySnapshot = await getDocs(collection(db, 'posts'));
+    const querySnapshot = await getDocs(postsRef);
     querySnapshot.forEach((doc) => {
-      data.push({ ...doc.data(), id: doc.id });
+      data.push({
+        ...doc.data(),
+        id: doc.id,
+        createdAt: doc.data()?.createdAt?.toDate(),
+      });
     });
+    console.log(data);
     setData(data);
   };
   useEffect(() => {
@@ -40,10 +48,11 @@ function App() {
       title,
       description,
       image,
+      createdAt: Timestamp.now(),
     };
 
     try {
-      await addDoc(collection(db, 'posts'), newData);
+      await addDoc(postsRef, newData);
       getData();
     } catch (e) {
       console.error('Error adding document: ', e);
@@ -54,8 +63,9 @@ function App() {
   }
 
   async function handleOnClickDeleteCard(id) {
+    const docRef = doc(db, 'posts', id);
     try {
-      await deleteDoc(doc(db, 'posts', id));
+      await deleteDoc(docRef);
       getData();
     } catch (e) {
       console.error('Error deleting document: ', e);
@@ -75,7 +85,8 @@ function App() {
     };
 
     try {
-      await setDoc(doc(db, 'posts', id), dataToEdit);
+      const docRef = doc(db, 'posts', id);
+      await setDoc(docRef, dataToEdit);
       setEditId(null);
       getData();
     } catch (e) {
