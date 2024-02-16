@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import CreateBlog from './page/CreateBlog';
 import ViewBlog from './page/ViewBlog';
 import ListBlog from './page/ListBlog';
-import { db } from './services/firebase';
+import { db } from './configs/firebase';
 import {
   Timestamp,
   addDoc,
@@ -31,7 +31,6 @@ function App() {
         createdAt: doc.data()?.createdAt?.toDate(),
       });
     });
-    console.log(data);
     setData(data);
   };
   useEffect(() => {
@@ -135,7 +134,10 @@ function App() {
               id: viewId,
             }}
             onEdit={handleOnClickEditCard}
-            onDelete={handleOnClickDeleteCard}
+            onDelete={(id) => {
+              handleOnClickDeleteCard(id);
+              setPage('home');
+            }}
           />
         </>
       )}

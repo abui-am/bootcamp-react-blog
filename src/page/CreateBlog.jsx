@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { uuidv4 } from '@firebase/util';
-import { storage } from '../services/firebase';
+import { storage } from '../configs/firebase';
 
 function CreateBlog({
   handleCreate,

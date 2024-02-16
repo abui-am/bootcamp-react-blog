@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import Header from '../components/Header';
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from '@firebase/firestore';
-import { db } from '../services/firebase';
+import { db } from '../configs/firebase';
 import dayjs from 'dayjs';
 
 function ViewBlog({
@@ -14,7 +14,6 @@ function ViewBlog({
 }) {
   const [data, setData] = useState({});
   const { image, title, description, createdAt } = data || {};
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,7 +40,7 @@ function ViewBlog({
         />
         <h1 className='text-4xl font-bold mb-6'>{title}</h1>
         <section id='action' className='flex mb-6 justify-between'>
-          <div>{dayjs(createdAt).format('DD MMMM YYYY')}</div>
+          <div>{createdAt ? dayjs(createdAt).format('DD MMMM YYYY') : '-'}</div>
           <div className='flex gap-6'>
             <button
               className='underline'
